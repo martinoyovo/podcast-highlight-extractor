@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: podcast-highlight-extractor
+    env: python
+    plan: starter  # Plan gratuit Render
+    
+    # Configuration du build
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+      python -m spacy download fr_core_news_sm
+      python -c "import nltk; nltk.download('vader_lexicon', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('punkt', quiet=True)"
+    
+    # Commande de démarrage
+    startCommand: python app.py
+    
+    # Variables d'environnement
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.16
+      - key: PORT
+        value: 7860
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: GRADIO_SERVER_NAME
+        value: "0.0.0.0"
+    
+    # Configuration réseau
+    healthCheckPath: /
+    
+    # Région (optionnel)
+    region: oregon  # ou singapore, frankfurt
+    
+    # Ressources (plan starter)
+    disk:
+      name: data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
