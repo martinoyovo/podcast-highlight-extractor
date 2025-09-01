@@ -627,3 +627,18 @@ def create_interface():
                     lines=15,
                     show_copy_button=True
                 )
+
+# Main execution block for deployment
+if __name__ == "__main__":
+    # Create the interface
+    interface = create_interface()
+    
+    # Configure for production deployment
+    interface.launch(
+        server_name="0.0.0.0",  # Required for Render
+        server_port=int(os.environ.get("PORT", 7860)),  # Use Render's PORT
+        share=False,  # Disable sharing for production
+        debug=False,  # Disable debug mode for production
+        show_error=True,  # Show errors in production
+        quiet=False  # Show startup messages
+    )
