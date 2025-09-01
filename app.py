@@ -8,12 +8,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import os
 
-# Imports optionnels avec gestion d'erreurs pour production
+# Optional imports with error handling for production
 try:
     import nltk
     from nltk.sentiment import SentimentIntensityAnalyzer
     from nltk.corpus import stopwords
-    # Téléchargement automatique des ressources NLTK
+        # Téléchargement automatique des ressources NLTK
     nltk.download('vader_lexicon', quiet=True)
     nltk.download('stopwords', quiet=True)
     nltk.download('punkt', quiet=True)
@@ -25,7 +25,7 @@ except Exception as e:
 
 try:
     import spacy
-    # Essai de chargement du modèle français
+    # Test loading the French model
     try:
         nlp_fr = spacy.load('fr_core_news_sm')
         SPACY_FR_OK = True
@@ -38,13 +38,13 @@ except:
     print("spaCy non disponible - mode basique")
 
 class HighlightExtractor:
-    """Extracteur de highlights optimisé pour production"""
+    """Optimized highlight extractor for production"""
     
     def __init__(self, language='fr'):
         self.language = language
         print(f"🔧 Initialisation extracteur ({language})")
         
-        # Configuration des stop words
+        # Configuration of stop words
         if NLTK_OK:
             try:
                 if language == 'fr':
@@ -56,7 +56,7 @@ class HighlightExtractor:
         else:
             self.stop_words = self._get_basic_stopwords(language)
         
-        # Analyseur de sentiment
+        # Sentiment analyzer
         if NLTK_OK:
             try:
                 self.sentiment_analyzer = SentimentIntensityAnalyzer()
@@ -66,7 +66,7 @@ class HighlightExtractor:
         else:
             self.sentiment_analyzer = None
         
-        # spaCy si disponible
+        # spaCy if available
         if SPACY_FR_OK and language == 'fr':
             self.nlp = nlp_fr
             print("spaCy français chargé")
@@ -74,7 +74,7 @@ class HighlightExtractor:
             self.nlp = None
     
     def _get_basic_stopwords(self, language):
-        """Stop words de base sans NLTK"""
+        """Basic stop words without NLTK"""
         if language == 'fr':
             return {
                 'le', 'la', 'les', 'un', 'une', 'de', 'du', 'des', 'et', 'à', 
@@ -93,15 +93,15 @@ class HighlightExtractor:
             }
     
     def preprocess_transcript(self, transcript):
-        """Préprocessing et segmentation robuste"""
+        """Robust preprocessing and segmentation"""
         if not transcript or not transcript.strip():
             return []
             
-        # Nettoyage
+        # Cleaning
         text = re.sub(r'\[.*?\]', '', transcript)
         text = re.sub(r'\s+', ' ', text).strip()
         
-        if len(text) < 50:  # Trop court
+        if len(text) < 50:  # Too short
             return []
         
         # Segmentation
@@ -119,10 +119,10 @@ class HighlightExtractor:
         return sentences
     
     def extract_features(self, sentences):
-        """Extraction de features optimisée"""
+        """Optimized feature extraction"""
         features = []
         
-        # Patterns multilingues
+        # Multilingual patterns
         fr_patterns = [
             r'\b(important|crucial|essentiel|clé|fondamental|vital)\b',
             r'\b(découverte|révélation|surprise|incroyable|extraordinaire)\b',
@@ -151,7 +151,7 @@ class HighlightExtractor:
                 'word_count': len(sentence.split()),
             }
             
-            # Score mots-clés d'importance
+            # Importance keyword score
             importance_score = 0
             for pattern in patterns:
                 matches = len(re.findall(pattern, sentence.lower()))
@@ -159,11 +159,11 @@ class HighlightExtractor:
             
             feature['importance_keywords'] = importance_score
             
-            # Features pragmatiques
+            # Pragmatic features
             feature['has_question'] = int('?' in sentence)
             feature['has_exclamation'] = int('!' in sentence)
             
-            # Chiffres et stats
+            # Numbers and stats
             numbers = re.findall(r'\d+', sentence)
             feature['number_count'] = len(numbers)
             feature['has_percentage'] = int('%' in sentence or 'pourcent' in sentence.lower())
@@ -178,13 +178,13 @@ class HighlightExtractor:
             else:
                 feature['sentiment_compound'] = 0
             
-            # Entités (basique ou spaCy)
+            # Entities (basic or spaCy)
             if self.nlp:
                 try:
                     doc = self.nlp(sentence)
                     feature['entity_count'] = len(doc.ents)
                 except:
-                    # Fallback basique
+                    # Basic fallback
                     proper_nouns = re.findall(r'\b[A-ZÀ-Ÿ][a-zA-ZÀ-ÿ]+\b', sentence)
                     feature['entity_count'] = len(set(proper_nouns))
             else:
@@ -196,7 +196,7 @@ class HighlightExtractor:
         return pd.DataFrame(features)
     
     def calculate_tfidf_scores(self, sentences):
-        """Calcul TF-IDF robuste"""
+        """Robust TF-IDF calculation"""
         try:
             vectorizer = TfidfVectorizer(
                 max_features=min(200, len(sentences) * 10),
@@ -223,41 +223,41 @@ class HighlightExtractor:
             return tfidf_scores, list(top_terms)
             
         except Exception as e:
-            print(f"⚠️ Erreur TF-IDF: {e}")
+            print(f"TF-IDF error: {e}")
             return [{'tfidf_avg': 0.0, 'tfidf_max': 0.0} for _ in sentences], []
     
     def extract_highlights(self, transcript, max_highlights=5, min_confidence=0.3):
-        """Extraction principale avec gestion d'erreurs robuste"""
+        """Main extraction with robust error handling"""
         try:
             if not transcript or len(transcript.strip()) < 50:
                 return {
                     'highlights': [],
-                    'metadata': {'error': 'Transcript trop court (minimum 50 caractères)'},
+                    'metadata': {'error': 'Transcript too short (minimum 50 characters)'},
                     'analytics': {}
                 }
             
-            # Préprocessing
+            # Preprocessing
             sentences = self.preprocess_transcript(transcript)
             if len(sentences) == 0:
                 return {
                     'highlights': [],
-                    'metadata': {'error': 'Aucune phrase détectée'},
+                    'metadata': {'error': 'No sentences detected'},
                     'analytics': {}
                 }
             
-            # Extraction features
+            # Feature extraction
             features_df = self.extract_features(sentences)
             
             # TF-IDF
             tfidf_scores, top_terms = self.calculate_tfidf_scores(sentences)
             
-            # Ajout scores TF-IDF
+            # Add TF-IDF scores
             for i, scores in enumerate(tfidf_scores):
                 if i < len(features_df):
                     features_df.loc[i, 'tfidf_avg'] = scores['tfidf_avg']
                     features_df.loc[i, 'tfidf_max'] = scores['tfidf_max']
             
-            # Calcul score composite
+            # Composite score calculation
             numeric_cols = ['importance_keywords', 'tfidf_max', 'sentiment_compound', 
                            'entity_count', 'number_count']
             
@@ -266,9 +266,9 @@ class HighlightExtractor:
                     features_df[f'{col}_norm'] = (features_df[col] - features_df[col].min()) / \
                                                (features_df[col].max() - features_df[col].min())
                 else:
-                    features_df[f'{col}_norm'] = 0.5  # Valeur neutre
+                    features_df[f'{col}_norm'] = 0.5  # Neutral value
             
-            # Poids optimisés
+            # Optimized weights
             weights = {
                 'importance_keywords_norm': 0.30,
                 'tfidf_max_norm': 0.25,
@@ -284,7 +284,7 @@ class HighlightExtractor:
                 if feature in features_df.columns:
                     features_df['final_score'] += weight * features_df[feature]
             
-            # Sélection highlights
+            # Highlight selection
             n_candidates = min(max_highlights * 2, len(features_df))
             candidates = features_df.nlargest(n_candidates, 'final_score')
             
@@ -296,7 +296,7 @@ class HighlightExtractor:
                 if len(highlights) >= max_highlights:
                     break
                     
-                # Confiance normalisée
+                # Normalized confidence
                 if max_score > min_score:
                     confidence = (candidate['final_score'] - min_score) / (max_score - min_score)
                 else:
@@ -319,7 +319,7 @@ class HighlightExtractor:
                     }
                     highlights.append(highlight)
             
-            # Résultats
+            # Results
             results = {
                 'highlights': highlights,
                 'metadata': {
@@ -348,17 +348,17 @@ class HighlightExtractor:
             return results
             
         except Exception as e:
-            print(f"Erreur extraction: {e}")
+            print(f"Extraction error: {e}")
             return {
                 'highlights': [],
-                'metadata': {'error': f'Erreur de traitement: {str(e)}'},
+                'metadata': {'error': f'Processing error: {str(e)}'},
                 'analytics': {}
             }
 
 def process_transcript(transcript_text, language, max_highlights, min_confidence):
-    """Fonction principale pour Gradio"""
+    """Main function for Gradio"""
     if not transcript_text or not transcript_text.strip():
-        return "Veuillez saisir un transcript", "", pd.DataFrame()
+        return "Please enter a transcript", "", pd.DataFrame()
     
     try:
         extractor = HighlightExtractor(language=language)
@@ -368,12 +368,12 @@ def process_transcript(transcript_text, language, max_highlights, min_confidence
             min_confidence=float(min_confidence)
         )
         
-        # Vérification d'erreurs
+        # Error checking
         if 'error' in results['metadata']:
             error_msg = f"{results['metadata']['error']}"
             return error_msg, "", pd.DataFrame()
         
-        # Formatage des résultats
+        # Result formatting
         display_text = format_results_for_display(results)
         highlights_table = create_highlights_table(results)
         json_output = json.dumps(results, indent=2, ensure_ascii=False)
@@ -381,31 +381,31 @@ def process_transcript(transcript_text, language, max_highlights, min_confidence
         return display_text, json_output, highlights_table
         
     except Exception as e:
-        error_msg = f"Erreur: {str(e)}"
-        print(f"Erreur traitement: {e}")
+        error_msg = f"Error: {str(e)}"
+        print(f"Processing error: {e}")
         return error_msg, "", pd.DataFrame()
 
 def format_results_for_display(results):
-    """Formatage optimisé pour affichage"""
+    """Optimized formatting for display"""
     if not results['highlights']:
-        return "Aucun highlight trouvé. Essayez de baisser le seuil de confiance ou vérifiez la qualité du transcript."
+        return "No highlights found. Try lowering the confidence threshold or check transcript quality."
     
     lines = []
     meta = results['metadata']
     
-    # En-tête
+    # Header
     lines.extend([
-        "RÉSULTATS DE L'EXTRACTION NLP",
+        "NLP EXTRACTION RESULTS",
         "=" * 60,
-        f"📊 Phrases analysées: {meta['total_sentences']}",
+        f"📊 Sentences analyzed: {meta['total_sentences']}",
         f"🧠 Version: {meta.get('version', '1.0')}",
-        f"😊 Sentiment moyen: {meta['avg_sentiment']:.3f}",
-        f"🌍 Langue: {meta['language']}"
+        f"😊 Average sentiment: {meta['avg_sentiment']:.3f}",
+        f"🌍 Language: {meta['language']}"
     ])
     
     if meta.get('top_keywords'):
         keywords = ', '.join(meta['top_keywords'][:5])
-        lines.append(f"🏷️ Mots-clés: {keywords}")
+        lines.append(f"🏷️ Keywords: {keywords}")
     
     # Highlights
     highlights = results['highlights']
@@ -420,22 +420,22 @@ def format_results_for_display(results):
         
         lines.extend([
             f"\nHIGHLIGHT #{i}",
-            f"📈 Confiance: {confidence_pct:.0f}% {confidence_bar}",
-            f"⏱️ Temps: {h['start_time']}s - {h['end_time']}s"
+            f"📈 Confidence: {confidence_pct:.0f}% {confidence_bar}",
+            f"⏱️ Time: {h['start_time']}s - {h['end_time']}s"
         ])
         
-        # Texte avec limite intelligente
+        # Text with intelligent limit
         text = h['text']
         if len(text) > 200:
-            # Coupe au dernier mot complet
+            # Cut at last complete word
             text = text[:197] + "..."
         lines.append(f'💬 "{text}"')
         
-        # Métriques
+        # Metrics
         f = h['features']
         lines.extend([
-            f"📊 Sentiment: {f['sentiment']:.2f} | Entités: {f['entities']} | " +
-            f"Mots-clés: {f['keywords']} | TF-IDF: {f['tfidf_score']:.3f}",
+            f"📊 Sentiment: {f['sentiment']:.2f} | Entities: {f['entities']} | " +
+            f"Keywords: {f['keywords']} | TF-IDF: {f['tfidf_score']:.3f}",
             "-" * 40
         ])
     
@@ -443,16 +443,16 @@ def format_results_for_display(results):
     if 'sentiment_distribution' in results['analytics']:
         sent = results['analytics']['sentiment_distribution']
         lines.extend([
-            f"\n📊 ANALYSE GLOBALE DU SENTIMENT:",
-            f"😊 Positif: {sent['positive']:.1%} | " +
-            f"😐 Neutre: {sent['neutral']:.1%} | " +
-            f"😔 Négatif: {sent['negative']:.1%}"
+            f"\n📊 GLOBAL SENTIMENT ANALYSIS:",
+            f"😊 Positive: {sent['positive']:.1%} | " +
+            f"😐 Neutral: {sent['neutral']:.1%} | " +
+            f"😔 Negative: {sent['negative']:.1%}"
         ])
     
     return "\n".join(lines)
 
 def create_highlights_table(results):
-    """Table pour interface Gradio"""
+    """Table for Gradio interface"""
     if not results['highlights']:
         return pd.DataFrame()
     
@@ -474,7 +474,7 @@ def create_highlights_table(results):
     return pd.DataFrame(rows)
 
 def get_example_transcript(example_name):
-    """Exemples optimisés"""
+    """Optimized examples"""
     examples = {
         "Podcast IA": """
         Bienvenue dans ce podcast dédié à l'intelligence artificielle. Aujourd'hui, nous explorons les avancées révolutionnaires qui transforment notre monde. L'IA n'est plus de la science-fiction, c'est une réalité qui impacte déjà tous les secteurs.
@@ -514,9 +514,9 @@ def get_example_transcript(example_name):
     }
     return examples.get(example_name, "")
 
-# Interface Gradio
+# Gradio Interface
 def create_interface():
-    """Interface Gradio optimisée pour production"""
+    """Gradio interface optimized for production"""
     
     custom_css = """
     .gradio-container {
@@ -537,17 +537,17 @@ def create_interface():
         css=custom_css
     ) as interface:
         
-        # En-tête
+        # Header
         gr.HTML("""
         <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);">
-            <h1 style="margin: 0; font-size: 2.8em; font-weight: 700;">🧠 Extracteur NLP de Highlights</h1>
+            <h1 style="margin: 0; font-size: 2.8em; font-weight: 700;">Extracteur NLP de Highlights</h1>
             <p style="margin: 15px 0 0 0; font-size: 1.3em; opacity: 0.95;">Intelligence Artificielle pour l'identification automatique de moments clés dans vos podcasts</p>
             <p style="margin: 8px 0 0 0; font-size: 0.95em; opacity: 0.8;">Propulsé par NLTK, scikit-learn et spaCy • Version Production</p>
         </div>
         """)
         
         with gr.Row():
-            # Paramètres
+            # Parameters
             with gr.Column(scale=1):
                 gr.HTML("<h3 style='color: #667eea;'>⚙️ Configuration</h3>")
                 
@@ -570,14 +570,14 @@ def create_interface():
                     info="Plus bas = plus de résultats"
                 )
                 
-                gr.HTML("<h4 style='color: #764ba2; margin-top: 25px;'>📝 Examples</h4>")
+                gr.HTML("<h4 style='color: #764ba2; margin-top: 25px;'>Examples</h4>")
                 
                 example_buttons = []
-                for example in ["Podcast IA", "💼 Interview Business", "🎓 Cours Technique"]:
+                for example in ["Podcast IA", "Interview Business", "Cours Technique"]:
                     btn = gr.Button(example, size="sm", variant="secondary")
                     example_buttons.append((btn, example))
             
-            # Zone principale
+            # Main area
             with gr.Column(scale=2):
                 gr.HTML("<h3 style='color: #667eea;'>Transcript à analyser</h3>")
                 
@@ -595,24 +595,23 @@ def create_interface():
                         size="lg",
                         scale=2
                     )
-                    clear_btn = gr.Button("🗑️ Effacer", variant="secondary", scale=1)
+                    clear_btn = gr.Button("Effacer", variant="secondary", scale=1)
         
-        # Résultats
+        # Results
         with gr.Row():
             with gr.Column():
-                gr.HTML("<h3 style='color: #667eea;'>🎯 Highlights Extraits</h3>")
+                gr.HTML("<h3 style='color: #667eea;'>Highlights Extraits</h3>")
                 results_display = gr.Textbox(
                     label="Résultats de l'analyse",
                     lines=25,
                     max_lines=40,
-                    show_copy_button=True,
                     container=True
                 )
         
-        # Tableau et JSON
+        # Table and JSON
         with gr.Row():
             with gr.Column(scale=2):
-                gr.HTML("<h3 style='color: #764ba2;'>📊 Tableau Détaillé</h3>")
+                gr.HTML("<h3 style='color: #764ba2;'>Tableau Détaillé</h3>")
                 highlights_table = gr.DataFrame(
                     label="Analyse des highlights",
                     interactive=False,
@@ -620,13 +619,33 @@ def create_interface():
                 )
             
             with gr.Column(scale=1):
-                gr.HTML("<h3 style='color: #764ba2;'>📁 Export JSON</h3>")
+                gr.HTML("<h3 style='color: #764ba2;'>Export JSON</h3>")
                 json_output = gr.Code(
                     label="Données structurées",
                     language="json",
-                    lines=15,
-                    show_copy_button=True
+                    lines=15
                 )
+        
+        # Event handlers
+        extract_btn.click(
+            fn=process_transcript,
+            inputs=[transcript_input, language, max_highlights, min_confidence],
+            outputs=[results_display, json_output, highlights_table]
+        )
+        
+        clear_btn.click(
+            fn=lambda: ("", "", pd.DataFrame()),
+            outputs=[transcript_input, results_display, highlights_table]
+            )
+        
+        # Example buttons
+        for btn, example_name in example_buttons:
+            btn.click(
+                fn=lambda name=example_name: get_example_transcript(name),
+                outputs=[transcript_input]
+            )
+    
+    return interface
 
 # Main execution block for deployment
 if __name__ == "__main__":
