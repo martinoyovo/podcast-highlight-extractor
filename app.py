@@ -507,9 +507,27 @@ def get_example_transcript(example_name):
         
         Point crucial à retenir : la communication entre services. Privilégiez les API REST et les messages asynchrones. Évitez les couplages forts qui détruisent les bénéfices de l'architecture.
         
-        Attention aux pièges ! La complexité opérationnelle augmente exponentiellement. Il faut maîtriser Docker, Kubernetes, la surveillance et le déploiement automatisé. Ne sous-estimez jamais cet aspect.
+        Attention aux pièges ! La complexité opérationnelle augmente exponentiellement. Il faut maîtriser Docker, Kubernetes, la surveillance et le déplajement automatisé. Ne sous-estimez jamais cet aspect.
         
         En conclusion, les microservices offrent scalabilité et flexibilité, mais exigent maturité technique et organisationnelle. Commencez petit et évoluez progressivement vers cette architecture.
+        """,
+        
+        "🌟 AI Enthusiasm": """
+        Welcome to this incredible journey into the amazing world of artificial intelligence! Today we're exploring the most exciting and revolutionary breakthroughs that are absolutely transforming our digital landscape. This is truly a golden age of innovation!
+        
+        The most wonderful thing about modern AI is how it's making technology accessible to everyone. These incredible tools are opening up endless possibilities for creativity and problem-solving. It's absolutely mind-blowing how much progress we've made in just a few years!
+        
+        Here's the fantastic news: machine learning is now easier than ever to implement! The beautiful thing is that you don't need to be a genius mathematician anymore. These amazing libraries and frameworks handle all the complex calculations for you, making AI development incredibly accessible and enjoyable.
+        
+        The best part? The results are absolutely spectacular! We're seeing accuracy improvements that were unimaginable just a decade ago. It's like watching magic happen in real-time - the way these systems can understand, learn, and adapt is truly extraordinary.
+        
+        What makes this even more exciting is the incredible community behind it all. Developers from around the world are sharing their knowledge, creating amazing open-source projects, and helping each other succeed. The collaboration and innovation happening right now is absolutely inspiring!
+        
+        And here's the most beautiful thing: this technology is helping solve real-world problems! From healthcare breakthroughs to environmental protection, AI is making our world a better place. Every day brings new discoveries that fill us with hope and excitement for the future.
+        
+        The possibilities are absolutely limitless! Whether you're building the next breakthrough app, creating art with AI, or solving complex scientific problems, the tools are there and they're getting better every single day. This is truly the most exciting time to be in technology!
+        
+        Remember, the key to success is staying curious and never stopping learning. Every challenge is an opportunity for growth, and every failure is a stepping stone to something amazing. The future is bright, and it's happening right now!
         """
     }
     return examples.get(example_name, "")
@@ -573,7 +591,7 @@ def create_interface():
                 gr.HTML("<h4 style='color: #764ba2; margin-top: 25px;'>Examples</h4>")
                 
                 example_buttons = []
-                for example in ["Podcast IA", "Interview Business", "Cours Technique"]:
+                for example in ["Podcast IA", "Interview Business", "Cours Technique", "🌟 AI Enthusiasm"]:
                     btn = gr.Button(example, size="sm", variant="secondary")
                     example_buttons.append((btn, example))
             
