@@ -18,10 +18,10 @@ try:
     nltk.download('stopwords', quiet=True)
     nltk.download('punkt', quiet=True)
     NLTK_OK = True
-    print("✅ NLTK disponible")
+    print("NLTK disponible")
 except Exception as e:
     NLTK_OK = False
-    print(f"⚠️ NLTK non disponible: {e}")
+    print(f"NLTK non disponible: {e}")
 
 try:
     import spacy
