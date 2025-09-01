@@ -654,7 +654,7 @@ def create_interface():
         clear_btn.click(
             fn=lambda: ("", "", pd.DataFrame()),
             outputs=[transcript_input, results_display, highlights_table]
-            )
+        )
         
         # Example buttons
         for btn, example_name in example_buttons:
